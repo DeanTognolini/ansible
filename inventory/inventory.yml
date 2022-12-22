@@ -1,0 +1,17 @@
+all:
+  hosts:
+    node01:
+      ansible_ssh_user: dean
+      ansible_become_pass: '{{ node01_become_pass }}' 
+    node02:
+      ansible_ssh_user: dean
+      ansible_become_pass: '{{ node02_become_pass }}' 
+  children:
+    servers:
+      hosts:
+        node01:
+        node02:
+    dockerhosts:
+      hosts:
+        node01:
+        node02:

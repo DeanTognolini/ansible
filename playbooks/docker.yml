@@ -1,0 +1,67 @@
+---
+- hosts: servers
+  become: true
+  vars_files: [~/ansible/vault/vaulted_vars.yml]
+  vars:
+    default_container_image: ubuntu
+  tasks:
+   
+    - name: Upgrade all packages
+      dnf:
+        name : "*"
+        state: latest
+
+    - name: Remove the podman package
+      tags: install
+      dnf:
+        name: podman
+        state: absent
+
+    - name: Remove the buildah package
+      tags: install
+      dnf:
+        name: buildah
+        state: absent
+
+    - name: Set up docker repository
+      tags: install
+      shell: |
+        dnf install -y yum-utils
+        yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+      args:
+        warn: no
+
+    - name: dnf update and install docker-ce
+      tags: install
+      dnf:
+        name: 
+          - docker-ce 
+          - docker-ce-cli
+          - containerd.io 
+          - docker-compose-plugin
+        state: latest
+        update_cache: true
+
+    - name: Start docker.service
+      tags: install
+      systemd:
+        name: docker
+        state: started
+
+    - name: Enable docker.service
+      tags: install
+      systemd:
+        name: docker
+        enabled: yes
+
+    - name: docker container ls -a
+      tags: container_ls
+      become: True
+      shell:
+        "docker container ls -a"
+      register: container_info
+
+    - name: docker container ls -a result
+      tags: container_ls
+      debug:
+        msg: "{{container_info.stdout_lines}}"

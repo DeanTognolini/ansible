@@ -1,0 +1,10 @@
+---
+- hosts: servers
+  become: true
+  vars_files: [~/ansible/vault/vaulted_vars.yml]
+  tasks:
+
+    - name: Install latest version of vim
+      dnf:
+        name: vim
+        state: latest

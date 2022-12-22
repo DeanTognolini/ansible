@@ -1,0 +1,14 @@
+---
+- hosts: servers
+  become: true
+  vars_files: [~/ansible/vault/vaulted_vars.yml]
+  tasks:
+
+    - name: Update DNF packages
+      dnf:
+        update_cache: true
+
+    - name: Upgrade all packages
+      dnf:
+        name: "*"
+        state: latest

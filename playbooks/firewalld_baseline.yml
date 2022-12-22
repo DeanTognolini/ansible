@@ -1,0 +1,52 @@
+---
+- hosts: servers
+  become: true
+  vars_files: [~/ansible/vault/vaulted_vars.yml]
+  tasks:
+
+    - name: Remove default unwanted allowed services from public zone
+      firewalld:
+        permanent: true
+        immediate: yes
+        zone: public
+        service: "{{ item }}"
+        state: disabled
+      with_items:
+        - dhcpv6-client
+        - cockpit
+
+    - name: Create new tailscale zone
+      firewalld:
+        permanent: true
+        zone: tailscale
+        state: present
+
+    - name: Reload firewalld to apply new tailscale zone
+      shell: firewall-cmd --reload
+
+    - name: Add allowed services to tailscale zone
+      firewalld:
+        permanent: true
+        immediate: yes
+        zone: tailscale
+        service: "{{ item }}"
+        state: enabled
+      with_items:
+        - ssh
+        - cockpit
+
+    - name: Move tailscale interface into tailscale zone 
+      firewalld:
+        permanent: true
+        immediate: yes
+        zone: tailscale
+        interface: tailscale0
+        state: enabled
+
+    - name: Remove SSH from public zone allowed services
+      firewalld: 
+        permanent: true
+        immediate: yes
+        zone: public
+        service: ssh
+        state: disabled
